@@ -51,15 +51,12 @@ function getInputs() {
         agentName: core.getInput('agent-name') || undefined,
         gitRepository: core.getInput('git-repository') || undefined,
         gitRef: core.getInput('git-ref') || undefined,
-        npmPackage: core.getInput('npm-package') || undefined,
-        npmVersion: core.getInput('npm-version') || undefined,
-        npmRegistry: core.getInput('npm-registry') || undefined,
-        pipPackage: core.getInput('pip-package') || undefined,
-        pipVersion: core.getInput('pip-version') || undefined,
-        pipRegistry: core.getInput('pip-registry') || undefined,
         path: core.getInput('path') || undefined,
         setupCommands: setupCommandsRaw
-            ? setupCommandsRaw.split('\n').map(cmd => cmd.trim()).filter(cmd => cmd.length > 0)
+            ? setupCommandsRaw
+                .split('\n')
+                .map(cmd => cmd.trim())
+                .filter(cmd => cmd.length > 0)
             : undefined,
         isPublic: isPublicRaw === 'true',
         apiUrl: core.getInput('api-url') || 'https://api.runloop.ai',
@@ -69,25 +66,14 @@ function getInputs() {
 }
 function validateInputs(inputs) {
     // Validate source type
-    const validSourceTypes = ['git', 'npm', 'pip', 'tar', 'file', 'directory'];
+    const validSourceTypes = ['git', 'tar', 'file'];
     if (!validSourceTypes.includes(inputs.sourceType)) {
         throw new Error(`Invalid source-type: ${inputs.sourceType}. Must be one of: ${validSourceTypes.join(', ')}`);
     }
     // Validate source-specific inputs
     switch (inputs.sourceType) {
-        case 'npm':
-            if (!inputs.npmPackage) {
-                throw new Error('npm-package is required when source-type is "npm"');
-            }
-            break;
-        case 'pip':
-            if (!inputs.pipPackage) {
-                throw new Error('pip-package is required when source-type is "pip"');
-            }
-            break;
         case 'tar':
         case 'file':
-        case 'directory':
             if (!inputs.path) {
                 throw new Error(`path is required when source-type is "${inputs.sourceType}"`);
             }
@@ -97,8 +83,11 @@ function validateInputs(inputs) {
             // Git source doesn't require explicit repository (uses current repo by default)
             // Validation happens in git-utils.ts
             break;
-        default:
-            throw new Error(`Unsupported source-type: ${inputs.sourceType}`);
+        default: {
+            // Exhaustiveness check - this should never happen
+            const exhaustiveCheck = inputs.sourceType;
+            throw new Error(`Unsupported source-type: ${exhaustiveCheck}`);
+        }
     }
     // Validate API key format (should not be empty)
     if (!inputs.apiKey || inputs.apiKey.trim().length === 0) {
@@ -117,21 +106,14 @@ function validatePath(inputPath, sourceType) {
     if (!workspace) {
         throw new Error('GITHUB_WORKSPACE environment variable is not set');
     }
-    const absolutePath = path.isAbsolute(inputPath)
-        ? inputPath
-        : path.join(workspace, inputPath);
+    const absolutePath = path.isAbsolute(inputPath) ? inputPath : path.join(workspace, inputPath);
     // Check if path exists
     if (!fs.existsSync(absolutePath)) {
         throw new Error(`Path does not exist: ${inputPath} (resolved to: ${absolutePath})`);
     }
     // Validate based on source type
     const stats = fs.statSync(absolutePath);
-    if (sourceType === 'directory') {
-        if (!stats.isDirectory()) {
-            throw new Error(`Path must be a directory when source-type is "directory": ${inputPath}`);
-        }
-    }
-    else if (sourceType === 'file' || sourceType === 'tar') {
+    if (sourceType === 'file' || sourceType === 'tar') {
         if (!stats.isFile()) {
             throw new Error(`Path must be a file when source-type is "${sourceType}": ${inputPath}`);
         }
@@ -142,7 +124,5 @@ function resolvePath(inputPath) {
     if (!workspace) {
         throw new Error('GITHUB_WORKSPACE environment variable is not set');
     }
-    return path.isAbsolute(inputPath)
-        ? inputPath
-        : path.join(workspace, inputPath);
+    return path.isAbsolute(inputPath) ? inputPath : path.join(workspace, inputPath);
 }

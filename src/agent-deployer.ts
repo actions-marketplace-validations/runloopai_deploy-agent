@@ -6,11 +6,30 @@ import { uploadTarFile, uploadSingleFile } from './object-uploader';
 import { resolvePath } from './validators';
 
 // Type definitions for Agent API (since not in SDK yet)
+interface GitSource {
+  type: 'git';
+  git: {
+    repository: string;
+    ref: string;
+    agent_setup: string[];
+  };
+}
+
+interface ObjectSource {
+  type: 'object';
+  object: {
+    object_id: string;
+    agent_setup: string[];
+  };
+}
+
+type AgentSource = GitSource | ObjectSource;
+
 interface AgentView {
   id: string;
   name: string;
   is_public: boolean;
-  source: any;
+  source: AgentSource;
 }
 
 export interface DeploymentResult {
@@ -49,8 +68,11 @@ export async function deployAgent(inputs: ActionInputs): Promise<DeploymentResul
       result = await deployFileAgent(client, agentName, inputs);
       break;
 
-    default:
-      throw new Error(`Unsupported source type: ${inputs.sourceType}`);
+    default: {
+      // Exhaustiveness check - this should never happen
+      const exhaustiveCheck: never = inputs.sourceType;
+      throw new Error(`Unsupported source type: ${exhaustiveCheck as string}`);
+    }
   }
 
   core.info(`✓ Agent deployed successfully!`);

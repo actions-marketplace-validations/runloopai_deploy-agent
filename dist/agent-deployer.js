@@ -60,23 +60,17 @@ async function deployAgent(inputs) {
         case 'git':
             result = await deployGitAgent(client, agentName, inputs);
             break;
-        case 'npm':
-            result = await deployNpmAgent(client, agentName, inputs);
-            break;
-        case 'pip':
-            result = await deployPipAgent(client, agentName, inputs);
-            break;
-        case 'directory':
-            result = await deployDirectoryAgent(client, agentName, inputs);
-            break;
         case 'tar':
             result = await deployTarAgent(client, agentName, inputs);
             break;
         case 'file':
             result = await deployFileAgent(client, agentName, inputs);
             break;
-        default:
-            throw new Error(`Unsupported source type: ${inputs.sourceType}`);
+        default: {
+            // Exhaustiveness check - this should never happen
+            const exhaustiveCheck = inputs.sourceType;
+            throw new Error(`Unsupported source type: ${exhaustiveCheck}`);
+        }
     }
     core.info(`✓ Agent deployed successfully!`);
     core.info(`  Agent ID: ${result.agentId}`);
@@ -112,103 +106,6 @@ async function deployGitAgent(client, agentName, inputs) {
     return {
         agentId: agent.id,
         agentName: agent.name,
-    };
-}
-/**
- * Deploy an agent from an NPM package.
- */
-async function deployNpmAgent(client, agentName, inputs) {
-    core.info('Deploying NPM agent...');
-    if (!inputs.npmPackage) {
-        throw new Error('npm-package is required for NPM agent deployment');
-    }
-    // Create agent with NPM source
-    const npmSource = {
-        package_name: inputs.npmPackage,
-        npm_version: inputs.npmVersion || 'latest',
-        agent_setup: inputs.setupCommands || [],
-    };
-    if (inputs.npmRegistry) {
-        npmSource.registry_url = inputs.npmRegistry;
-    }
-    const agent = await client.post('/v1/agents', {
-        body: {
-            name: agentName,
-            is_public: inputs.isPublic,
-            source: {
-                type: 'npm',
-                npm: npmSource,
-            },
-        },
-    });
-    return {
-        agentId: agent.id,
-        agentName: agent.name,
-    };
-}
-/**
- * Deploy an agent from a Pip package.
- */
-async function deployPipAgent(client, agentName, inputs) {
-    core.info('Deploying Pip agent...');
-    if (!inputs.pipPackage) {
-        throw new Error('pip-package is required for Pip agent deployment');
-    }
-    // Create agent with Pip source
-    const pipSource = {
-        package_name: inputs.pipPackage,
-        agent_setup: inputs.setupCommands || [],
-    };
-    if (inputs.pipVersion) {
-        pipSource.pip_version = inputs.pipVersion;
-    }
-    if (inputs.pipRegistry) {
-        pipSource.registry_url = inputs.pipRegistry;
-    }
-    const agent = await client.post('/v1/agents', {
-        body: {
-            name: agentName,
-            is_public: inputs.isPublic,
-            source: {
-                type: 'pip',
-                pip: pipSource,
-            },
-        },
-    });
-    return {
-        agentId: agent.id,
-        agentName: agent.name,
-    };
-}
-/**
- * Deploy an agent from a directory (creates tar.gz).
- */
-async function deployDirectoryAgent(client, agentName, inputs) {
-    core.info('Deploying directory agent...');
-    if (!inputs.path) {
-        throw new Error('path is required for directory agent deployment');
-    }
-    const directoryPath = (0, validators_1.resolvePath)(inputs.path);
-    // Upload directory as tar.gz
-    const uploadResult = await (0, object_uploader_1.uploadDirectory)(client, directoryPath, inputs.objectTtlDays);
-    // Create agent with object source
-    const agent = await client.post('/v1/agents', {
-        body: {
-            name: agentName,
-            is_public: inputs.isPublic,
-            source: {
-                type: 'object',
-                object: {
-                    object_id: uploadResult.objectId,
-                    agent_setup: inputs.setupCommands || [],
-                },
-            },
-        },
-    });
-    return {
-        agentId: agent.id,
-        agentName: agent.name,
-        objectId: uploadResult.objectId,
     };
 }
 /**

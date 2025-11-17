@@ -88,4 +88,4 @@ async function run(): Promise<void> {
 }
 
 // Run the action
-run();
+void run();

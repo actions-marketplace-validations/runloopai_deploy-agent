@@ -33,26 +33,11 @@ var __importStar = (this && this.__importStar) || (function () {
     };
 })();
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.uploadDirectory = uploadDirectory;
 exports.uploadTarFile = uploadTarFile;
 exports.uploadSingleFile = uploadSingleFile;
 const core = __importStar(require("@actions/core"));
 const fs = __importStar(require("fs"));
 const path = __importStar(require("path"));
-const tar_creator_1 = require("./tar-creator");
-/**
- * Upload a directory as a tar.gz archive.
- */
-async function uploadDirectory(client, directoryPath, ttlDays) {
-    core.info(`Uploading directory: ${directoryPath}`);
-    // Create tar.gz from directory
-    const tarGzBuffer = await (0, tar_creator_1.createTarGzFromDirectory)(directoryPath);
-    // Use directory name for the object name
-    const dirName = path.basename(directoryPath);
-    const objectName = `${dirName}.tar.gz`;
-    // Upload the archive
-    return uploadBuffer(client, tarGzBuffer, objectName, 'tgz', ttlDays);
-}
 /**
  * Upload a tar.gz file directly.
  */
@@ -105,10 +90,8 @@ async function uploadBuffer(client, buffer, objectName, contentType, ttlDays) {
             source: 'github-action',
             uploaded_at: new Date().toISOString(),
         },
+        ...(ttlMs && { ttl_ms: ttlMs }),
     };
-    if (ttlMs) {
-        createParams.ttl_ms = ttlMs;
-    }
     core.info('Creating object...');
     const createdObject = await client.objects.create(createParams);
     if (!createdObject.upload_url) {

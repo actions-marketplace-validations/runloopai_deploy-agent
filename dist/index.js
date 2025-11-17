@@ -113,4 +113,4 @@ async function run() {
     }
 }
 // Run the action
-run();
+void run();

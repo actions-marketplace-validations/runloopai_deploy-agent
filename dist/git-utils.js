@@ -87,7 +87,8 @@ function determineGitRef(context) {
     }
     // For pull request events, use the head SHA
     if (eventName === 'pull_request' || eventName === 'pull_request_target') {
-        const prSha = context.payload.pull_request?.head?.sha || sha;
+        const pullRequest = context.payload.pull_request;
+        const prSha = pullRequest?.head?.sha || sha;
         core.info(`Pull request event, using SHA: ${prSha}`);
         return prSha;
     }

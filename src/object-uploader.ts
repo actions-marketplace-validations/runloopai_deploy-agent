@@ -73,18 +73,15 @@ async function uploadBuffer(
 
   // Step 1: Create object and get presigned URL
   const ttlMs = ttlDays ? ttlDays * 24 * 60 * 60 * 1000 : undefined;
-  const createParams: any = {
+  const createParams = {
     name: objectName,
     content_type: contentType,
     metadata: {
       source: 'github-action',
       uploaded_at: new Date().toISOString(),
     },
+    ...(ttlMs && { ttl_ms: ttlMs }),
   };
-
-  if (ttlMs) {
-    createParams.ttl_ms = ttlMs;
-  }
 
   core.info('Creating object...');
   const createdObject = await client.objects.create(createParams);

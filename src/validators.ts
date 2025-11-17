@@ -69,8 +69,11 @@ export function validateInputs(inputs: ActionInputs): void {
       // Validation happens in git-utils.ts
       break;
 
-    default:
-      throw new Error(`Unsupported source-type: ${inputs.sourceType}`);
+    default: {
+      // Exhaustiveness check - this should never happen
+      const exhaustiveCheck: never = inputs.sourceType;
+      throw new Error(`Unsupported source-type: ${exhaustiveCheck as string}`);
+    }
   }
 
   // Validate API key format (should not be empty)
