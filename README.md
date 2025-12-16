@@ -14,7 +14,7 @@ A GitHub Action to deploy agents to the [Runloop](https://runloop.ai) platform. 
 
 ## Quick Start
 
-### Deploy Current Repository as Agent
+### Deploy Current Repository as an Agent
 
 ```yaml
 - name: Deploy agent
@@ -22,6 +22,7 @@ A GitHub Action to deploy agents to the [Runloop](https://runloop.ai) platform. 
   with:
     api-key: ${{ secrets.RUNLOOP_API_KEY }}
     source-type: git
+    agent-version: 1.0.0
 ```
 
 That's it! The action will automatically use your current repository and commit SHA.
@@ -34,6 +35,7 @@ That's it! The action will automatically use your current repository and commit 
 |-------|----------|---------|-------------|
 | `api-key` | ✅ | | Runloop API key (store in secrets) |
 | `source-type` | ✅ | | Agent source type: `git`, `tar`, or `file` |
+| `agent-version` | ✅ | | Agent version (semver string like `2.0.65` or git SHA) |
 | `agent-name` | | repo name | Name for the agent (defaults to repository name) |
 | `git-repository` | | current repo | Git repository URL (auto-detected) |
 | `git-ref` | | current commit/tag | Git ref (branch/tag/commit SHA, auto-detected) |
@@ -63,6 +65,7 @@ That's it! The action will automatically use your current repository and commit 
   with:
     api-key: ${{ secrets.RUNLOOP_API_KEY }}
     source-type: git
+    agent-version: 1.0.0
     setup-commands: |
       chmod +x scripts/agent.sh
       npm install
@@ -84,6 +87,7 @@ jobs:
         with:
           api-key: ${{ secrets.RUNLOOP_API_KEY }}
           source-type: git
+          agent-version: ${{ github.event.release.tag_name }}
           agent-name: my-agent-${{ github.event.release.tag_name }}
 ```
 
@@ -105,6 +109,7 @@ Basic example:
   with:
     api-key: ${{ secrets.RUNLOOP_API_KEY }}
     source-type: tar
+    agent-version: 1.0.0
     path: agent.tar.gz
     object-ttl-days: 30
 ```
@@ -123,6 +128,7 @@ You can also use `.tar` format or reference output from a previous step:
   with:
     api-key: ${{ secrets.RUNLOOP_API_KEY }}
     source-type: tar
+    agent-version: 1.0.0
     path: ${{ steps.build.outputs.archive-path }}
 ```
 
@@ -133,6 +139,7 @@ You can also use `.tar` format or reference output from a previous step:
   with:
     api-key: ${{ secrets.RUNLOOP_API_KEY }}
     source-type: file
+    agent-version: 1.0.0
     path: ./scripts/agent.sh
 ```
 
