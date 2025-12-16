@@ -56,6 +56,7 @@ inputs:
   object-ttl-days:
     description: 'Time-to-live for uploaded objects in days (optional)'
     required: false
+    # default is 'undefined' => don't auto-delete
 
 outputs:
   agent-id:
