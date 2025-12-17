@@ -95,13 +95,11 @@ export function validateInputs(inputs: ActionInputs): void {
 }
 
 function validatePath(inputPath: string, sourceType: SourceType): void {
-  // Resolve path relative to workspace
-  const workspace = process.env.GITHUB_WORKSPACE;
-  if (!workspace) {
-    throw new Error('GITHUB_WORKSPACE environment variable is not set');
+  if (sourceType !== 'file' && sourceType !== 'tar') {
+    throw new Error(`validatePath is undefined when source-type is "${sourceType}": ${inputPath}`);
   }
 
-  const absolutePath = path.isAbsolute(inputPath) ? inputPath : path.join(workspace, inputPath);
+  const absolutePath = resolvePath(inputPath);
 
   // Check if path exists
   if (!fs.existsSync(absolutePath)) {
@@ -110,11 +108,8 @@ function validatePath(inputPath: string, sourceType: SourceType): void {
 
   // Validate based on source type
   const stats = fs.statSync(absolutePath);
-
-  if (sourceType === 'file' || sourceType === 'tar') {
-    if (!stats.isFile()) {
-      throw new Error(`Path must be a file when source-type is "${sourceType}": ${inputPath}`);
-    }
+  if (!stats.isFile()) {
+    throw new Error(`Path must be a file when source-type is "${sourceType}": ${inputPath}`);
   }
 }
 
